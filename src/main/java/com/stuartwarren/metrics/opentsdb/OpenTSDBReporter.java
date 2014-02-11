@@ -281,8 +281,6 @@ public class OpenTSDBReporter extends ScheduledReporter {
     }
 
     private String format(double v) {
-        // the Carbon plaintext format is pretty underspecified, but it seems like it just wants
-        // US-formatted digits
         return String.format(Locale.US, "%2.2f", v);
     }
 }

@@ -94,7 +94,7 @@ public class UDPOutputStream extends OutputStream {
   ***                                                           ***
   ***  Description :                                            ***
   ***       Constructor.  Sets size of buffer.                  ***
-  ***                ***
+  ***                                                           ***
   *****************************************************************
 */
     public UDPOutputStream(int buffSize) {
@@ -115,7 +115,7 @@ public class UDPOutputStream extends OutputStream {
   ***  Description :                                            ***
   ***       Constructor.  Sets the address and port of the  UDP ***
   ***   socket to write to.                                     ***
-  ***                ***
+  ***                                                           ***
   *****************************************************************
 */
     public UDPOutputStream(String address, int portI) 
@@ -138,7 +138,7 @@ public class UDPOutputStream extends OutputStream {
   ***  Description :                                            ***
   ***       Constructor.  Sets the address and port of the  UDP ***
   ***   socket to write to.                                     ***
-  ***                ***
+  ***                                                           ***
   *****************************************************************
 */
     public UDPOutputStream(InetAddress address, int portI) 
@@ -161,7 +161,7 @@ public class UDPOutputStream extends OutputStream {
   ***  Description :                                            ***
   ***       Constructor.  Sets the address and port of the  UDP ***
   ***   socket to write to.  Sets the size of the buffer.       ***
-  ***                ***
+  ***                                                           ***
   *****************************************************************
 */
     public UDPOutputStream(String address, int portI, int buffSize) 
@@ -185,7 +185,7 @@ public class UDPOutputStream extends OutputStream {
   ***  Description :                                            ***
   ***       Constructor.  Sets the address and port of the  UDP ***
   ***   socket to write to.  Sets the size of the buffer.       ***
-  ***                ***
+  ***                                                           ***
   *****************************************************************
 */
     public UDPOutputStream(InetAddress address, int portI, int buffSize) 
@@ -238,7 +238,8 @@ public class UDPOutputStream extends OutputStream {
   *****************************************************************
 */
     public void close() throws IOException {
-        dsock.close();
+        if (null != dsock)
+            dsock.close();
         dsock = null;
         idx = 0;
     }

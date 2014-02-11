@@ -12,21 +12,22 @@ import java.util.regex.Pattern;
 public class OpenTSDB implements Closeable {
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]+");
     private static final Charset UTF_8 = Charset.forName("UTF-8");
-    private static final int BUF_SIZE = UDPOutputStream.DEFAULT_BUFFER_SIZE;
+    private static final int DEFAULT_BUF_SIZE = UDPOutputStream.DEFAULT_BUFFER_SIZE;
     public static final String DEFAULT_ADDRESS = "127.0.0.1";
     public static final int DEFAULT_PORT = 8953;
 
-    private OutputStream outputstream;
     private final Charset charset;
 
+    private OutputStream outputstream;
+    private InetSocketAddress address;
+    private int bufferSize;
     private Writer writer;
     private int failures;
+    
     
     /**
      * Creates a new client which connects to the default local address the
      * udp_bridge tcollector listens on.
-     * @throws IOException 
-     * @throws SocketException 
      */
     public OpenTSDB() {
         this(new InetSocketAddress(DEFAULT_ADDRESS, DEFAULT_PORT));
@@ -37,11 +38,9 @@ public class OpenTSDB implements Closeable {
      * Creates a new client which connects to the given address.
      *
      * @param address       the address of the Carbon server
-     * @throws IOException 
-     * @throws SocketException 
      */
     public OpenTSDB(InetSocketAddress address){
-        this(address, UTF_8, BUF_SIZE);
+        this(address, UTF_8, DEFAULT_BUF_SIZE);
     }
 
     /**
@@ -51,34 +50,26 @@ public class OpenTSDB implements Closeable {
      * @param address       the address of the Carbon server
      * @param charset       the character set used by the server
      * @param bufferSize    the length of the buffer. Must be at least 1 byte long
-     * @throws IOException 
-     * @throws SocketException 
      */
     public OpenTSDB(InetSocketAddress address, Charset charset, int bufferSize){
         this.charset = charset;
-        try {
-            this.outputstream = new UDPOutputStream(address.getAddress(), address.getPort(), bufferSize);
-        } catch (SocketException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        this.address = address;
+        this.bufferSize = bufferSize;
     }
 
     /**
      * Creates a connection.
-     *
+     * @throws SocketException       if the socket could not be opened, or the socket could not bind to the specified local port.
      * @throws IllegalStateException if the client is already connected
      * @throws IOException           if there is an error connecting
      */
-    public void connect(){
+    public void connect() throws SocketException, IOException{
         if (writer != null) {
             throw new IllegalStateException("Already connected");
         }
-
-        this.writer = new BufferedWriter(new OutputStreamWriter(this.outputstream, charset));
+        //TODO: could probably be simplified to just send UDPDatagrams rather that use an OutputStream
+        outputstream = new UDPOutputStream(address.getAddress(), address.getPort(), bufferSize);
+        writer = new BufferedWriter(new OutputStreamWriter(outputstream, charset));
     }
 
     /**
@@ -118,11 +109,11 @@ public class OpenTSDB implements Closeable {
     @Override
     public void close() throws IOException {
         if (writer != null) {
-            this.writer.flush();
-            this.outputstream.close();
-            this.writer.close();
+            writer.flush();
+            outputstream.close();
+            writer.close();
         }
-        this.writer = null;
+        writer = null;
     }
 
     protected String sanitize(String s) {
